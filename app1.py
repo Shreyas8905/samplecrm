@@ -5,16 +5,15 @@ from passlib.hash import sha256_crypt
 import yaml
 from functools import wraps
 
-
 app = Flask(__name__)
 
 
 #configure db
-db = yaml.load(open('db.yaml'))
+db = yaml.load(open('db.yaml'), Loader=yaml.SafeLoader)
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'admin'
-app.config['MYSQL_DB'] = 'flask1'
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = 'crm'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql=MySQL(app)
@@ -289,9 +288,6 @@ def convert_lead(name):
 #    return render_template('edit_lead.html')
 
 
-
-
-
 #delete fro leads
 @app.route('/delete_lead/<string:id>',methods=['POST'])
 @is_logged_in
@@ -494,11 +490,7 @@ def success_orded(name):
 @app.route('/unsuccessful_order/<string:name>', methods = ['GET', 'POST'])
 @is_logged_in
 def unsuccessful_order(name):
-
-
-    #cursor
     cur=mysql.connection.cursor()
-     #app.logger.info(name)
     result = cur.execute("SELECT *FROM orders WHERE name=%s",[name])
     orders = cur.fetchone()
 
@@ -508,29 +500,13 @@ def unsuccessful_order(name):
     phone=orders['phone']
     source=orders['source']
     address=orders['address']
-
-
-
     cur = mysql.connection.cursor()
     cur.execute("INSERT INTO orderslog(name,company_name,email,phone,source,address,status) VALUES(%s,%s,%s,%s,%s,%s,%s)",(name,company_name,email,phone,source,address,'unsuccessfull'))
     cur.execute("DELETE FROM orders WHERE name=%s",[name])
     mysql.connection.commit()
     cur.close()
     flash('Entry added to orderslog successfully','success')
-
     return redirect(url_for('ordertable'))
-#    return render_template('edit_lead.html')
-
-
-
-
-
-
-
-
-
-
-
 @app.route('/producttable')
 @is_logged_in
 def producttable():
@@ -547,11 +523,6 @@ def producttable():
 
     cur.close()
     return render_template('producttable.html')
-
-
-
-
-
 @app.route('/productform', methods=['GET', 'POST'])
 @is_logged_in
 def productform():
@@ -574,9 +545,6 @@ def productform():
         flash('Registerd','success')
         return redirect(url_for('producttable'))
     return render_template('productform.html')
-
-
-
 @app.route('/delete_product/<string:id>',methods=['POST'])
 @is_logged_in
 def delete_product(id):
@@ -589,11 +557,6 @@ def delete_product(id):
      flash('Entry Deleted','success')
 
      return redirect(url_for('producttable'))
-
-
-
-
-
 @app.route('/product_selection')
 @is_logged_in
 def product_selection():
@@ -608,12 +571,6 @@ def product_selection():
 
       cur.close()
       return render_template('product_selection.html')
-
-
-
-
-
-
 @app.route('/select_order/<string:pcode>', methods = ['GET', 'POST'])
 @is_logged_in
 def select_order(pcode):
@@ -627,13 +584,6 @@ def select_order(pcode):
 
     return redirect(url_for('product_selection'))
 #    return render_template('edit_lead.html')
-
-
-
-
-
-
-
 @app.route('/product_quantity', methods=['GET', 'POST'])
 @is_logged_in
 def product_quantity():
@@ -650,13 +600,6 @@ def product_quantity():
 
     cur.close()
     return render_template('product_quantity.html')
-
-
-
-
-
-
-
 @app.route('/invoice/<string:name>', methods = ['GET', 'POST'])
 @is_logged_in
 def invoice(name):
@@ -673,30 +616,11 @@ def invoice(name):
 
         return redirect(url_for('invoice'))
     return render_template('product_quantity.html')
-
-
-
-
-
-
-
-
-
-
-
 @app.route('/invoice1')
 @is_logged_in
 def invoice1():
     #    return redirect(url_for('invoice'))
     return render_template('invoice.html')
-
-
-
-
-
-
-
-
 @app.route('/check_product/<string:id>',methods=['POST'])
 @is_logged_in
 def check_product(id):
@@ -709,13 +633,6 @@ def check_product(id):
      flash('Entry selected','success')
 
      return redirect(url_for('product_selection'))
-
-
-
-
-
-
-
 @app.route('/contacttable')
 @is_logged_in
 def contacttable():
@@ -730,13 +647,6 @@ def contacttable():
 
       cur.close()
       return render_template('contacttable.html')
-
-
-
-
-
-
-
 @app.route('/contactform', methods=['GET', 'POST'])
 @is_logged_in
 def contactform():
@@ -758,10 +668,6 @@ def contactform():
         flash('Registerd','success')
         return redirect(url_for('contacttable'))
     return render_template('contactform.html')
-
-
-
-
 @app.route('/delete_contact/<string:id>',methods=['POST'])
 @is_logged_in
 def delete_contact(id):
@@ -774,11 +680,6 @@ def delete_contact(id):
      flash('Entry Deleted','success')
 
      return redirect(url_for('contacttable'))
-
-
-
-
-
 @app.route('/report')
 @is_logged_in
 def report():
@@ -793,17 +694,9 @@ def report():
 
       cur.close()
       return render_template('report.html')
-
-
-
-
-
 @app.route('/generate_report/<string:name>', methods = ['GET', 'POST'])
 @is_logged_in
 def generatereport(name):
-
-
-    #cursor
     cur=mysql.connection.cursor()
 
     result = cur.execute("SELECT *FROM contact WHERE name=%s",[name])
@@ -816,15 +709,6 @@ def generatereport(name):
 
     cur.close()
     return render_template('generatereport.html')
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     app.secret_key='secret123'
     app.run(debug=True)
